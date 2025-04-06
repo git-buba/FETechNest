@@ -93,6 +93,26 @@ export const COMPANY_TECH_BLOGS = [
     title: '당근마켓 기술 블로그',
     url: 'https://medium.com/feed/daangn',
     category: '회사 기술 블로그'
+  },
+  {
+    title: '올리브영 기술 블로그',
+    url: 'https://techblog.oliveyoung.co.kr/rss',
+    category: '회사 기술 블로그'
+  },
+  {
+    title: '여기어때 기술 블로그',
+    url: 'https://techblog.gccompany.co.kr/feed',
+    category: '회사 기술 블로그'
+  },
+  {
+    title: '카카오페이 기술 블로그',
+    url: 'https://tech.kakaopay.com/rss',
+    category: '회사 기술 블로그'
+  },
+  {
+    title: '리디 기술 블로그',
+    url: 'https://www.ridicorp.com/feed.xml',
+    category: '회사 기술 블로그'
   }
 ];
 

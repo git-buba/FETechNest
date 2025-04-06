@@ -2,11 +2,13 @@
 
 import { FiClock, FiCopy, FiCheck } from "react-icons/fi";
 import { useState } from "react";
+import { BLOG_COLORS } from "@/shared/constants/blog-colors";
 
 interface FeedItemProps {
   blog: {
     title: string;
     url: string;
+    category?: string;
   };
 }
 
@@ -19,9 +21,33 @@ export default function FeedItem({ blog }: FeedItemProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // 블로그 브랜드 색상 가져오기
+  const getBlogColor = (title: string): string => {
+    return BLOG_COLORS[title] || BLOG_COLORS["기본"];
+  };
+
+  // 대비되는 텍스트 색상 계산
+  const getContrastColor = (hexColor: string): string => {
+    // 간단한 밝기 계산
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    return brightness > 128 ? '#000000' : '#ffffff';
+  };
+
+  const blogColor = getBlogColor(blog.title);
+  const textColor = getContrastColor(blogColor);
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-border rounded-lg p-4 bg-card">
-      <div className="mb-3 sm:mb-0">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-border rounded-lg p-4 bg-card overflow-hidden">
+      <div className="mb-3 sm:mb-0 relative pl-4 sm:pl-6">
+        {/* 색상 표시줄 */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-2 sm:w-3"
+          style={{ backgroundColor: blogColor }}
+        ></div>
         <h3 className="text-lg font-medium">{blog.title}</h3>
         <div className="mt-1 flex items-center text-xs text-muted-foreground">
           <FiClock className="h-3 w-3 mr-1" />
@@ -30,8 +56,12 @@ export default function FeedItem({ blog }: FeedItemProps) {
       </div>
       <div>
         <button 
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
           onClick={handleCopy}
+          style={{ 
+            backgroundColor: copied ? '#10b981' : blogColor, 
+            color: textColor 
+          }}
         >
           {copied ? (
             <>

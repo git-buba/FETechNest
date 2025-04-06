@@ -8,6 +8,7 @@ import {
   FiCode,
   FiMoon,
   FiSun,
+  FiMail,
 } from "react-icons/fi";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -47,7 +48,7 @@ export function Header() {
               pathname === "/newsletters" ? "bg-accent text-accent-foreground" : ""
             }`}
           >
-            <FiRss className="h-4 w-4" />
+            <FiMail className="h-4 w-4" />
             <span className="hidden sm:inline">뉴스레터</span>
           </Link>
           <Link

@@ -5,31 +5,9 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { FeedItem } from "@/lib/rss";
 import { useState, useEffect } from "react";
+import { BLOG_COLORS } from "@/shared/constants/blog-colors";
 
-// 블로그별 색상 (이미지 대신 사용)
-const BLOG_COLORS = {
-  "네이버 D2": "#19ce60",
-  "카카오 기술 블로그": "#ffde00",
-  "라인 기술 블로그": "#00c300",
-  "우아한형제들 기술 블로그": "#2ac1bc",
-  "Vercel 블로그": "#000000",
-  "CSS-Tricks": "#ff7a59",
-  "Smashing Magazine": "#e85c41",
-  "JavaScript Weekly": "#f7df1e",
-  "React Blog": "#61dafb",
-  "Vue.js News": "#42b883",
-  "Angular Blog": "#dd0031",
-  "Next.js Blog": "#000000",
-  "Node.js Blog": "#68a063",
-  "GitHub Blog": "#6f42c1",
-  "Mozilla Hacks": "#ff9500",
-  "토스 기술 블로그": "#0064ff",
-  "당근마켓 기술 블로그": "#fa6616",
-  "Chrome 개발자 블로그": "#1a73e8",
-  "MDN Web Docs 블로그": "#83d0f2",
-  "Web.dev": "#3740ff",
-  "기본": "#6366f1"
-};
+// 블로그별 색상 정의는 shared/constants/blog-colors.ts로 이동했습니다.
 
 export function BlogCard({ item }: { item: FeedItem }) {
   const date = item.isoDate || item.pubDate;
@@ -69,7 +47,7 @@ export function BlogCard({ item }: { item: FeedItem }) {
   
   // 블로그 배경색 가져오기
   const getBlogColor = (sourceName: string): string => {
-    return BLOG_COLORS[sourceName as keyof typeof BLOG_COLORS] || BLOG_COLORS["기본"];
+    return BLOG_COLORS[sourceName] || BLOG_COLORS["기본"];
   };
   
   // 대비되는 텍스트 색상 계산
