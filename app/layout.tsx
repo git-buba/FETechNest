@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/shared/providers/theme-provider";
 import { Header } from "@/shared/layout/ui/header";
 import { Footer } from "@/shared/layout/ui/footer";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <Analytics />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen flex-col`}
       >
