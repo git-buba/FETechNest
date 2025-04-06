@@ -291,6 +291,13 @@ export async function fetchFeed(url: string): Promise<Parser.Output<CustomItem> 
     }
     
     console.log(`${url} 피드 가져오기 시도 중...`);
+    
+    // 직접 요청 대신 백엔드 프록시 API 사용
+    if (typeof window !== 'undefined') {
+      // 클라이언트 측에서는 직접 요청하지 않고 프록시 API 사용
+      throw new Error('클라이언트 측에서는 직접 피드를 가져올 수 없습니다');
+    }
+
     const feed = await parser.parseURL(url);
     console.log(`${url} 피드 가져오기 성공!`);
     
@@ -302,7 +309,7 @@ export async function fetchFeed(url: string): Promise<Parser.Output<CustomItem> 
     
     return feed;
   } catch (error) {
-    console.error(`${url} 피드를 가져오는데 실패: ${error}`);
+    console.error(`${url} 피드를 가져오는데 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return null;
   }
 }
@@ -402,13 +409,17 @@ export async function fetchAllFeeds(category?: string) {
       return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
     
+    // JSON을 통한 직렬화 및 역직렬화로 순수 객체 생성
+    // 이렇게 하면 클래스나 프로토타입 정보가 제거되어 직렬화 가능한 객체가 됨
+    const serializedFeeds = JSON.parse(JSON.stringify(sortedFeeds));
+    
     // 결과 캐싱
     allFeedsCache[cacheKey] = {
-      data: sortedFeeds,
+      data: serializedFeeds,
       expiry: now + CACHE_DURATION
     };
     
-    return sortedFeeds;
+    return serializedFeeds;
   } catch (error) {
     console.error('모든 피드 가져오기 오류:', error);
     return [];

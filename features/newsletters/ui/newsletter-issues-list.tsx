@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { FeedItem } from "@/lib/rss";
 import { NewsletterIssueCard } from "./newsletter-issue-card";
 import { FiAlertCircle, FiRefreshCw, FiLoader, FiInbox } from "react-icons/fi";
+import { getNewsletterIssuesAsFeedItems } from "@/lib/newsletter-issues";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -34,16 +35,11 @@ export function NewsletterIssuesList({ newsletterId }: { newsletterId: string })
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/newsletter-issues?id=${newsletterId}`);
+      const issuesData = getNewsletterIssuesAsFeedItems(newsletterId);
       
-      if (!response.ok) {
-        throw new Error("뉴스레터 이슈 데이터를 가져오는데 실패했습니다.");
-      }
-      
-      const data = await response.json();
-      setAllFeeds(data.feeds || []);
-      setFeeds(data.feeds.slice(0, ITEMS_PER_PAGE) || []);
-      setHasMore(data.feeds.length > ITEMS_PER_PAGE);
+      setAllFeeds(issuesData || []);
+      setFeeds(issuesData.slice(0, ITEMS_PER_PAGE) || []);
+      setHasMore(issuesData.length > ITEMS_PER_PAGE);
     } catch (error) {
       console.error("뉴스레터 이슈 가져오기 오류:", error);
       setError("뉴스레터 이슈 데이터를 가져오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");

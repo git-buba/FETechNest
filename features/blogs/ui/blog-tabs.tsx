@@ -53,7 +53,7 @@ function BlogListWrapper({ feeds, category }: { feeds: FeedItem[], category: str
 
 // 블로그 탭 컴포넌트
 export function BlogTabs({ platformBlogs, companyBlogs }: BlogTabsProps) {
-  const [activeTab, setActiveTab] = useState<"platform" | "company">("platform");
+  const [activeTab, setActiveTab] = useState<"platform" | "company" | "all">("platform");
   
   // 서버에서 제공한 데이터 사용 (SWR 불필요)
   const platformFeedsToShow = platformBlogs;

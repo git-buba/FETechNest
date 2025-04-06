@@ -305,5 +305,9 @@ export function convertIssueToFeedItem(issue: NewsletterIssue): FeedItem {
 // 특정 뉴스레터의 이슈 목록을 RSS 피드 형식으로 변환
 export function getNewsletterIssuesAsFeedItems(newsletterId: string): FeedItem[] {
   const issues = getNewsletterIssues(newsletterId);
-  return issues.map(convertIssueToFeedItem);
+  const feedItems = issues.map(convertIssueToFeedItem);
+  
+  // JSON을 통한 직렬화 및 역직렬화로 순수 객체 생성
+  // 이렇게 하면 클래스나 프로토타입 정보가 제거되어 직렬화 가능한 객체가 됨
+  return JSON.parse(JSON.stringify(feedItems));
 } 

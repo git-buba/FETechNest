@@ -1,9 +1,13 @@
 import { FeedItem } from "./rss";
+import { getApiUrl } from "@/shared/utils/api";
 
 // SWR용 fetcher 함수
 export const fetcher = async (url: string) => {
   try {
-    const res = await fetch(url);
+    // 상대 경로를 절대 URL로 변환
+    const absoluteUrl = url.startsWith('http') ? url : getApiUrl(url);
+    
+    const res = await fetch(absoluteUrl);
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       const errorMessage = errorData.error || `서버 오류: ${res.status} ${res.statusText}`;

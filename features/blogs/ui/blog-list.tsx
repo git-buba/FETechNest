@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { FeedItem } from "@/lib/rss";
-import { BlogCard } from "./blog-card";
-import { FiAlertCircle, FiRefreshCw, FiLoader, FiInbox, FiSearch, FiFilter, FiX, FiChevronDown } from "react-icons/fi";
+import { FeedItem, fetchAllFeeds } from "@/lib/rss";
+import { FiAlertCircle, FiRefreshCw, FiLoader, FiInbox, FiSearch, FiFilter, FiX, FiChevronDown, FiChevronRight, FiFileText } from "react-icons/fi";
 import { TECH_BLOGS, COMPANY_TECH_BLOGS, PLATFORM_TECH_BLOGS } from "@/lib/rss";
 import useSWR from 'swr';
-import { fetcher, getSWRKey, filterFeeds } from "@/lib/api";
+import { filterFeeds } from "@/lib/api";
 import { BLOG_COLORS } from "@/shared/constants/blog-colors";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 10;
 
 // 블로그별 색상 정의는 shared/constants/blog-colors.ts로 이동했습니다.
 
@@ -45,11 +46,13 @@ export function BlogList({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   
-  // SWR을 사용한 데이터 가져오기 (disableFetching=true이면 서버 데이터만 사용)
-  const categoryParam = selectedCategory !== "전체" ? `?category=${encodeURIComponent(selectedCategory)}` : "";
+  // SWR을 사용한 데이터 가져오기 (API 대신 직접 함수 호출하도록 수정)
   const { data, error, isLoading, mutate } = useSWR(
-    disableFetching ? null : getSWRKey(`/api/rss${categoryParam}`, initialFeeds),
-    fetcher,
+    disableFetching ? null : `feeds-${selectedCategory}`,
+    async () => {
+      const feeds = await fetchAllFeeds(selectedCategory !== "전체" ? selectedCategory : undefined);
+      return { feeds };
+    },
     {
       fallbackData: initialFeeds.length > 0 ? { feeds: initialFeeds } : undefined,
       revalidateOnFocus: false,
@@ -91,6 +94,9 @@ export function BlogList({
         if (entries[0].isIntersecting && hasMore) {
           setPage(prevPage => prevPage + 1);
         }
+      }, {
+        rootMargin: '300px',
+        threshold: 0.1
       });
       if (node) observer.current.observe(node);
     },
@@ -349,35 +355,119 @@ export function BlogList({
 
   // 메인 UI
   return (
-    <div className="flex flex-col w-full">
+    <div className="w-full">
       {renderSearchAndFilter()}
       
-      <div className="flex flex-col space-y-6 w-full">
-        {displayedFeeds.map((feed, index) => {
-          if (displayedFeeds.length === index + 1) {
+      {/* 피드 리스트 형태로 변경 */}
+      <div className="space-y-4 mt-4">
+        {displayedFeeds.length > 0 ? (
+          displayedFeeds.map((feed, index) => {
+            const date = feed.isoDate || feed.pubDate;
+            const formattedDate = date 
+              ? formatDistanceToNow(new Date(date), { addSuffix: true, locale: ko })
+              : "";
+            const sourceName = feed.source?.title || "블로그";
+            const blogColor = BLOG_COLORS[sourceName] || BLOG_COLORS["기본"];
+            
+            // 컨텐츠 스니펫 생성
+            const content = feed.content || feed.contentSnippet || feed.description;
+            const contentSnippet = content
+              ? content.replace(/<[^>]+>/g, ' ').substring(0, 150) + (content.length > 150 ? '...' : '')
+              : "";
+            
             return (
-              <div ref={lastFeedElementRef} key={feed.link || index}>
-                <BlogCard item={feed} />
+              <div 
+                key={`${feed.link}-${index}`}
+                ref={index === displayedFeeds.length - 1 ? lastFeedElementRef : null}
+                className="flex border border-border rounded-lg overflow-hidden bg-card shadow-sm hover:shadow transition-shadow"
+              >
+                <div 
+                  className="w-2 flex-shrink-0"
+                  style={{ backgroundColor: blogColor }}
+                ></div>
+                <div className="flex-1 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <div 
+                        className="h-6 w-6 flex-shrink-0 rounded-full overflow-hidden mr-2"
+                        style={{ backgroundColor: blogColor }}
+                      >
+                        {feed.enclosure?.url ? (
+                          <img 
+                            src={feed.enclosure?.url}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center">
+                            <FiFileText className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-muted-foreground">{sourceName}</span>
+                      <span className="mx-2 text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground">{formattedDate}</span>
+                    </div>
+                    <a 
+                      href={feed.link || '#'} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80"
+                      aria-label="자세히 보기"
+                    >
+                      <FiChevronRight className="h-5 w-5" />
+                    </a>
+                  </div>
+                  
+                  <a 
+                    href={feed.link || '#'} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors mb-2">{feed.title}</h3>
+                    {contentSnippet && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {contentSnippet}
+                      </p>
+                    )}
+                  </a>
+                </div>
               </div>
             );
-          } else {
-            return <BlogCard key={feed.link || index} item={feed} />;
-          }
-        })}
-        
-        {isLoading && page > 1 && (
-          <div className="flex justify-center items-center py-8">
-            <FiLoader className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">더 불러오는 중...</span>
-          </div>
-        )}
-        
-        {!hasMore && displayedFeeds.length > 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            모든 피드를 불러왔습니다
+          })
+        ) : (
+          <div className="border border-dashed rounded-lg p-8 text-center">
+            {error ? (
+              <div className="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</div>
+            ) : isLoading ? (
+              <div className="flex justify-center">
+                <FiLoader className="animate-spin text-primary h-6 w-6" />
+              </div>
+            ) : searchTerm || selectedSource ? (
+              <div>
+                <div className="text-muted-foreground mb-2">검색 결과가 없습니다.</div>
+                <button 
+                  onClick={resetFilters} 
+                  className="text-primary hover:underline text-sm"
+                >
+                  모든 결과 보기
+                </button>
+              </div>
+            ) : (
+              <div className="text-muted-foreground">피드가 없습니다.</div>
+            )}
           </div>
         )}
       </div>
+      
+      {/* 로딩 인디케이터 */}
+      {hasMore && displayedFeeds.length > 0 && (
+        <div className="flex justify-center mt-8 mb-4">
+          <FiLoader className="animate-spin text-primary h-6 w-6" />
+        </div>
+      )}
     </div>
   );
 } 

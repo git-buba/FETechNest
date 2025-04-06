@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     
+    console.log(`API 요청: 카테고리 "${category || '전체'}" 피드 요청됨`);
+    
     // 캐시 키를 생성할 수 있음 (Redis 또는 다른 캐싱 솔루션을 사용할 경우)
     // const cacheKey = `rss-feeds-${category || 'all'}`;
     
@@ -23,17 +25,53 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         feeds: [],
         message: '피드를 찾을 수 없습니다. 잠시 후 다시 시도해주세요.' 
-      }, { status: 200 });
+      }, { 
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      });
     }
     
     console.log(`RSS API 응답 완료: ${feeds.length}개의 피드 항목 리턴`);
-    return NextResponse.json({ feeds });
+    return NextResponse.json({ feeds }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    });
   } catch (error) {
     console.error("RSS API error:", error);
+    const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류";
     
     return NextResponse.json(
-      { message: "피드를 처리하는 중 오류가 발생했습니다." },
-      { status: 500 }
+      { 
+        message: "피드를 처리하는 중 오류가 발생했습니다.", 
+        error: errorMessage,
+        timestamp: new Date().toISOString()
+      },
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      }
     );
   }
+}
+
+// OPTIONS 요청 처리 - CORS 프리플라이트 요청 대응
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
 } 
